@@ -1,97 +1,488 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Golden Life | Premium Dog Care</title>
-    <meta name="description"
-        content="Discover the best care, tips, and products for your furry friend. Join our community of dog lovers today.">
+    <title>興昌壓克力 - 最佳板材計算機 (可自訂價格版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+            background-color: #f0f2f5;
+        }
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+        .input-number::-webkit-inner-spin-button,
+        .input-number::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
-    <link rel="stylesheet" href="style.css">
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        .table-input {
+            transition: all 0.2s;
+        }
+
+        .table-input:focus {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+        }
+    </style>
 </head>
 
 <body>
+    <div id="root"></div>
 
-    <nav>
-        <a href="#" class="logo">
-            <i class="fa-solid fa-paw"></i> The Golden Life
-        </a>
-        <div class="nav-links">
-            <a href="#home">Home</a>
-            <a href="#about">About</a>
-            <a href="#breeds">Breeds</a>
-            <a href="#gallery">Gallery</a>
-        </div>
-        <a href="#join" class="btn">Join Pack</a>
-    </nav>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-    <header id="home" class="hero">
-        <img src="images/hero.png" alt="Happy Golden Retriever in a sunny park" class="hero-bg">
-        <div class="hero-content">
-            <h1>Every Dog Deserves the Best</h1>
-            <p>Experience premium care, expert advice, and a community that treats your pet like royalty.</p>
-            <a href="#about" class="btn">Explore More</a>
-        </div>
-    </header>
+        // 預設規格 (不建議修改)
+        const SHEET_SPECS = [
+            { code: "T", w: 1000, h: 1800, name: "T (3.30x6.33)" },
+            { code: "D", w: 1230, h: 2430, name: "D (4.1x8.1)" },
+            { code: "Q", w: 1270, h: 1870, name: "Q (4.19x6.17)" },
+            { code: "S1", w: 1320, h: 1920, name: "S1 (4.36x6.34)" },
+            { code: "L1", w: 1260, h: 2480, name: "L1 (4.12x8.22)" },
+            { code: "L2", w: 1330, h: 2565, name: "L2 (4.39x8.46)" },
+            { code: "PD", w: 1000, h: 1920, name: "PD (3.30x6.33)" },
+            { code: "H", w: 1100, h: 2190, name: "H (3.63x7.23)" },
+            { code: "B", w: 1020, h: 2020, name: "B (3.36x6.66)" },
+            { code: "V", w: 1580, h: 1580, name: "V (5.21x5.21)" },
+            { code: "K", w: 1620, h: 1920, name: "K (5.35x6.33)" },
+            { code: "Y", w: 1600, h: 2560, name: "Y (5.28x8.44)" },
+            { code: "R", w: 1950, h: 2560, name: "R (6.43x8.44)" },
+            { code: "M", w: 1580, h: 3070, name: "M (5.21x10.13)" },
+            { code: "S2", w: 1430, h: 2050, name: "S2 (4.71x6.76)" },
+            { code: "C", w: 1270, h: 2270, name: "C (4.19x7.49)" },
+            { code: "W", w: 2050, h: 3050, name: "W (6.76x10.06)" },
+            { code: "F", w: 990, h: 2200, name: "F (3.26x7.26)" },
+            { code: "A", w: 1440, h: 2380, name: "A (4.75x7.85)" }
+        ];
 
-    <section id="about" class="about">
-        <div class="feature-card">
-            <i class="fa-solid fa-heart feature-icon"></i>
-            <h3>Love & Care</h3>
-            <p>Our philosophy is rooted in unconditional love and top-tier care for every breed.</p>
-        </div>
-        <div class="feature-card">
-            <i class="fa-solid fa-bone feature-icon"></i>
-            <h3>Premium Nutrition</h3>
-            <p>Discover the healthiest diet plans tailored to your dog's specific needs.</p>
-        </div>
-        <div class="feature-card">
-            <i class="fa-solid fa-shield-dog feature-icon"></i>
-            <h3>Safety First</h3>
-            <p>Expert tips on keeping your environment safe and fun for your four-legged friend.</p>
-        </div>
-    </section>
+        // 預設價格 (作為初始值)
+        const DEFAULT_PRICES = {
+            "2mm": [655, 1091, 880, 837, 1074, 1181, 1130, 835, 735, 809, 909, 1438, 1676, 2086, 980, 980, 2778, 765, 1165],
+            "2.5mm": [774, 1200, 1030, 888, 1181, 1300, 1130, 919, 809, 988, 963, 1524, 2296, 2484, 1165, 1078, 3248, 842, 1282],
+            "3mm": [893, 1390, 1111, 1088, 1324, 1465, 1148, 987, 869, 963, 1036, 1612, 2484, 2732, 1253, 1148, 3798, 909, 1465],
+            "4mm": [1173, 1823, 1435, 1274, 1797, 1929, 1456, 1253, 1103, 1344, 1418, 2122, 3269, 3596, 1646, 1550, 5178, 1178, 1878],
+            "5mm": [1466, 2316, 1794, 1611, 2152, 2412, 1680, 1497, 1339, 1529, 1733, 2611, 4090, 4499, 2066, 2040, 6328, 1550, 2211],
+            "6mm": [1760, 2780, 2152, 1929, 2553, 2894, 1878, 1871, 1529, 1755, 2010, 3021, 4710, 5181, 2515, 2211, 7539, 1826, 2746],
+            "8mm": [2398, 3706, 2897, 2562, 3316, 4119, 2562, 2400, 2170, 2362, 2598, 4531, 6527, 7180, 3145, 3160, 10106, 2189, 3435],
+            "10mm": [2997, 4633, 3624, 3219, 4146, 5141, 3145, 3068, 2655, 2921, 3145, 5483, 8160, 8976, 4325, 4060, 12920, 2999, 4904],
+            "12mm": [3597, 5561, 4349, 3861, 4957, 6151, 3779, 3685, 3219, 3651, 4060, 6031, 9149, 10167, 5140, 5080, 16174, 3645, 5394],
+            "15mm": [4399, 6950, 5483, 4780, 6430, 7625, 4838, 4796, 4315, 4746, 5510, 7539, 11893, 12475, 6547, 6061, 18725, 4535, 6608],
+            "18mm": [5279, null, 6579, 5832, 7487, 9043, 5883, 5883, 5477, null, 6608, 9892, null, null, 7625, 7269, 24030, null, 7832],
+            "20mm": [null, null, null, null, 8318, 10167, null, null, null, null, 7935, 10888, null, null, null, null, 8388, null, null],
+            "25mm": [null, null, null, null, 10931, 14735, null, null, null, null, null, null, null, null, null, null, null, null, null],
+            "30mm": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+        };
 
-    <section id="gallery" class="gallery">
-        <h2>Paw-some Moments</h2>
-        <div class="gallery-grid">
-            <div class="gallery-item">
-                <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=800"
-                    alt="Dog 1">
-                <div class="gallery-overlay"><span>Playtime</span></div>
-            </div>
-            <div class="gallery-item">
-                <img src="https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&q=80&w=800"
-                    alt="Dog 2">
-                <div class="gallery-overlay"><span>Best Friends</span></div>
-            </div>
-            <div class="gallery-item">
-                <img src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&q=80&w=800"
-                    alt="Dog 3">
-                <div class="gallery-overlay"><span>Adventures</span></div>
-            </div>
-            <div class="gallery-item">
-                <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&q=80&w=800"
-                    alt="Dog 4">
-                <div class="gallery-overlay"><span>Cuddles</span></div>
-            </div>
-        </div>
-    </section>
+        function App() {
+            const [view, setView] = useState('CALCULATOR'); // 'CALCULATOR' or 'SETTINGS'
+            const [prices, setPrices] = useState(DEFAULT_PRICES);
 
-    <footer>
-        <p>&copy; 2024 The Golden Life. Designed with <i class="fa-solid fa-heart" style="color: var(--primary)"></i>
-            for dogs.</p>
-    </footer>
+            const [input, setInput] = useState({
+                thickness: "3mm",
+                length: "",
+                width: "",
+                requiredQty: ""
+            });
 
-    <script src="script.js"></script>
+            const [results, setResults] = useState([]);
+            const [hasCalculated, setHasCalculated] = useState(false);
+
+            // 初始化時讀取 LocalStorage
+            useEffect(() => {
+                const savedPrices = localStorage.getItem('acrylic_prices_v1');
+                if (savedPrices) {
+                    try {
+                        setPrices(JSON.parse(savedPrices));
+                    } catch (e) {
+                        console.error("讀取價格失敗", e);
+                    }
+                }
+            }, []);
+
+            // 儲存價格到 LocalStorage
+            const savePrices = (newPrices) => {
+                setPrices(newPrices);
+                localStorage.setItem('acrylic_prices_v1', JSON.stringify(newPrices));
+                alert("價格設定已儲存！");
+            };
+
+            // 回復原廠設定
+            const resetPrices = () => {
+                if (confirm("確定要回復成系統預設價格嗎？您自訂的價格將會消失。")) {
+                    setPrices(DEFAULT_PRICES);
+                    localStorage.setItem('acrylic_prices_v1', JSON.stringify(DEFAULT_PRICES));
+                    alert("已回復預設值");
+                }
+            };
+
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setInput(prev => ({
+                    ...prev,
+                    [name]: value
+                }));
+            };
+
+            // 價格修改處理
+            const handlePriceChange = (thickness, index, newVal) => {
+                const updatedPrices = { ...prices };
+                const newArray = [...updatedPrices[thickness]];
+                newArray[index] = newVal === "" ? null : parseInt(newVal);
+                updatedPrices[thickness] = newArray;
+                setPrices(updatedPrices); // 這裡不彈窗，只更新 State
+                // 為了效能，可以離開頁面時再存，或加一個儲存按鈕
+            };
+
+            const handleCalculate = () => {
+                const reqL = parseFloat(input.length);
+                const reqW = parseFloat(input.width);
+                const reqQty = parseInt(input.requiredQty) || 0;
+
+                if (!reqL || !reqW) {
+                    alert("請輸入有效的長度與寬度！");
+                    return;
+                }
+
+                const validOptions = [];
+                const currentPrices = prices[input.thickness];
+
+                if (!currentPrices) {
+                    alert("此厚度目前沒有資料，請至設定頁面確認");
+                    return;
+                }
+
+                SHEET_SPECS.forEach((sheet, index) => {
+                    const price = currentPrices[index];
+
+                    if (!price) return;
+
+                    const countNormal = Math.floor(sheet.h / reqL) * Math.floor(sheet.w / reqW);
+                    const countRotated = Math.floor(sheet.h / reqW) * Math.floor(sheet.w / reqL);
+                    const maxPieces = Math.max(countNormal, countRotated);
+
+                    if (maxPieces > 0) {
+                        const area = (sheet.w * sheet.h);
+                        const reqArea = (reqL * reqW) * maxPieces;
+                        const utilization = ((reqArea / area) * 100).toFixed(1);
+                        const unitPrice = (price / maxPieces);
+
+                        let sheetsNeeded = 0;
+                        let totalCost = 0;
+                        if (reqQty > 0) {
+                            sheetsNeeded = Math.ceil(reqQty / maxPieces);
+                            totalCost = sheetsNeeded * price;
+                        }
+
+                        validOptions.push({
+                            ...sheet,
+                            price: price,
+                            maxPieces: maxPieces,
+                            unitPrice: unitPrice,
+                            utilization: utilization,
+                            sheetsNeeded: sheetsNeeded,
+                            totalCost: totalCost,
+                            isRotated: countRotated > countNormal
+                        });
+                    }
+                });
+
+                if (validOptions.length === 0) {
+                    alert("沒有任何板材放得下此尺寸！");
+                    setResults([]);
+                } else {
+                    validOptions.sort((a, b) => a.unitPrice - b.unitPrice);
+                    setResults(validOptions);
+                }
+                setHasCalculated(true);
+            };
+
+            // 渲染設定頁面
+            if (view === 'SETTINGS') {
+                return (
+                    <div className="min-h-screen p-4 md:p-8 max-w-7xl mx-auto bg-gray-50">
+                        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                            <div className="flex justify-between items-center mb-6 border-b pb-4">
+                                <h1 className="text-2xl font-bold text-gray-800"><i className="fas fa-cog"></i> 價格表設定</h1>
+                                <div className="space-x-2">
+                                    <button onClick={resetPrices} className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300">
+                                        回復預設
+                                    </button>
+                                    <button onClick={() => savePrices(prices)} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                                        <i className="fas fa-save"></i> 儲存設定
+                                    </button>
+                                    <button onClick={() => setView('CALCULATOR')} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                        <i className="fas fa-arrow-left"></i> 返回計算機
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p className="mb-4 text-red-600 bg-red-50 p-3 rounded">
+                                <i className="fas fa-info-circle"></i> 請直接點擊表格內的數字進行修改。修改完成後請記得按下「儲存設定」。
+                            </p>
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm border-collapse border border-gray-300">
+                                    <thead className="bg-gray-100">
+                                        <tr>
+                                            <th className="border p-2 sticky left-0 bg-gray-100 z-10 w-20">厚度</th>
+                                            {SHEET_SPECS.map(spec => (
+                                                <th key={spec.code} className="border p-2 min-w-[80px]">
+                                                    <div className="font-bold text-blue-800">{spec.code}</div>
+                                                    <div className="text-xs text-gray-500 scale-90">{spec.w}x{spec.h}</div>
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {Object.keys(prices).map(thickness => (
+                                            <tr key={thickness} className="hover:bg-gray-50">
+                                                <td className="border p-2 font-bold sticky left-0 bg-white">{thickness}</td>
+                                                {prices[thickness].map((price, idx) => (
+                                                    <td key={idx} className="border p-0">
+                                                        <input
+                                                            type="number"
+                                                            className="w-full h-full p-2 text-center outline-none table-input input-number text-gray-700 font-medium"
+                                                            value={price === null ? "" : price}
+                                                            onChange={(e) => handlePriceChange(thickness, idx, e.target.value)}
+                                                        />
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 渲染計算機頁面
+            return (
+                <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
+                    <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-blue-100">
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white flex justify-between items-center">
+                            <div>
+                                <h1 className="text-2xl font-bold flex items-center gap-2">
+                                    <i className="fas fa-calculator"></i> 興昌壓克力
+                                </h1>
+                                <p className="text-blue-100 text-sm mt-1">智能板材報價與用量計算</p>
+                            </div>
+                            <button
+                                onClick={() => setView('SETTINGS')}
+                                className="bg-white/20 hover:bg-white/30 text-white px-3 py-2 rounded-lg text-sm transition backdrop-blur-sm"
+                            >
+                                <i className="fas fa-cog"></i> 價格設定
+                            </button>
+                        </div>
+
+                        {/* Input Form */}
+                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-blue-50">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-gray-700">1. 板材厚度</label>
+                                <select
+                                    name="thickness"
+                                    value={input.thickness}
+                                    onChange={handleChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                >
+                                    {Object.keys(prices).map(t => (
+                                        <option key={t} value={t}>{t}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-gray-700">2. 需求長度 (mm)</label>
+                                <input
+                                    type="number"
+                                    name="length"
+                                    value={input.length}
+                                    onChange={handleChange}
+                                    placeholder="例如: 600"
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-gray-700">3. 需求寬度 (mm)</label>
+                                <input
+                                    type="number"
+                                    name="width"
+                                    value={input.width}
+                                    onChange={handleChange}
+                                    placeholder="例如: 400"
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-blue-800">4. 總需求數量 (選填)</label>
+                                <input
+                                    type="number"
+                                    name="requiredQty"
+                                    value={input.requiredQty}
+                                    onChange={handleChange}
+                                    placeholder="例如: 100"
+                                    className="w-full p-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="px-6 pb-6 bg-blue-50">
+                            <button
+                                onClick={handleCalculate}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition shadow-md flex justify-center items-center gap-2"
+                            >
+                                <i className="fas fa-search"></i> 開始計算最低成本
+                            </button>
+                        </div>
+
+                        {/* Results */}
+                        <div className="p-6">
+                            <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2 flex justify-between items-center">
+                                <span>計算結果</span>
+                                <span className="text-sm font-normal text-gray-500">
+                                    已啟用：最低單價優先排序
+                                </span>
+                            </h2>
+
+                            {hasCalculated && results.length === 0 && (
+                                <div className="text-center py-10 text-gray-500">
+                                    <i className="fas fa-exclamation-circle text-4xl mb-3 text-red-300"></i>
+                                    <p>沒有找到符合的板材。</p>
+                                    <p className="text-sm text-gray-400 mt-2">請確認您的尺寸是否小於最大板材，或檢查「價格設定」中該厚度是否有報價。</p>
+                                </div>
+                            )}
+
+                            {!hasCalculated && (
+                                <div className="text-center py-10 text-gray-500">
+                                    <i className="fas fa-ruler-combined text-4xl mb-3 text-gray-300"></i>
+                                    <p>請輸入尺寸並按下按鈕。</p>
+                                    <p className="text-sm mt-2 text-blue-500 cursor-pointer" onClick={() => setView('SETTINGS')}>
+                                        (若價格有誤，請點此進入設定修改)
+                                    </p>
+                                </div>
+                            )}
+
+                            {results.length > 0 && (
+                                <div className="space-y-4">
+                                    {/* Best Choice */}
+                                    <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg shadow-sm">
+                                        <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+                                            <div>
+                                                <span className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded mb-2 inline-block">
+                                                    最佳推薦 (最低單價)
+                                                </span>
+                                                <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                                                    規格: {results[0].code}
+                                                    <span className="text-sm font-normal text-gray-500">({results[0].w}x{results[0].h})</span>
+                                                </h3>
+                                                <div className="mt-2 text-gray-700 space-y-1">
+                                                    <p><i className="fas fa-th text-green-600 w-6"></i> 單張可切：<span className="font-bold text-xl">{results[0].maxPieces}</span> 塊</p>
+                                                    <p><i className="fas fa-coins text-blue-500 w-6"></i> 平均單價：<span className="font-bold text-xl text-blue-600">${results[0].unitPrice.toFixed(1)}</span></p>
+                                                </div>
+                                            </div>
+
+                                            {/* 總量計算結果 */}
+                                            {input.requiredQty > 0 ? (
+                                                <div className="text-right w-full md:w-auto bg-white p-3 rounded-lg border-2 border-green-200 shadow-sm">
+                                                    <div className="mb-2">
+                                                        <p className="text-xs text-gray-500 font-bold">為製作 {input.requiredQty} 塊成品需購買</p>
+                                                        <p className="text-2xl font-bold text-red-600">{results[0].sheetsNeeded} 張大板</p>
+                                                    </div>
+                                                    <div className="border-t border-gray-200 pt-2">
+                                                        <p className="text-xs text-gray-500">材料總成本</p>
+                                                        <p className="text-xl font-bold text-gray-800">${results[0].totalCost.toLocaleString()}</p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-right w-full md:w-auto bg-white/50 p-3 rounded-lg border border-green-100">
+                                                    <p className="text-xs text-gray-500">板材原價</p>
+                                                    <p className="text-xl font-bold text-gray-700">${results[0].price}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Other Options Table */}
+                                    {results.length > 1 && (
+                                        <div className="mt-6 overflow-x-auto">
+                                            <table className="w-full text-sm text-left text-gray-500">
+                                                <thead className="text-xs text-gray-700 uppercase bg-gray-100">
+                                                    <tr>
+                                                        <th className="px-4 py-3">規格</th>
+                                                        <th className="px-4 py-3 text-center">單張可切</th>
+                                                        <th className="px-4 py-3 text-right">平均單價</th>
+
+                                                        {input.requiredQty > 0 ? (
+                                                            <>
+                                                                <th className="px-4 py-3 text-center bg-blue-50 text-blue-800">需購板數</th>
+                                                                <th className="px-4 py-3 text-right bg-blue-50 text-blue-800">總成本</th>
+                                                            </>
+                                                        ) : (
+                                                            <th className="px-4 py-3 text-right">板材原價</th>
+                                                        )}
+
+                                                        <th className="px-4 py-3 text-center">利用率</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {results.slice(1, 11).map((sheet, idx) => (
+                                                        <tr key={idx} className="bg-white border-b hover:bg-gray-50">
+                                                            <td className="px-4 py-3 font-medium text-gray-900">
+                                                                {sheet.code} <span className="text-gray-400 text-xs block">({sheet.w}x{sheet.h})</span>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-center font-bold text-gray-600">
+                                                                {sheet.maxPieces}
+                                                            </td>
+                                                            <td className="px-4 py-3 text-right font-bold text-blue-600">
+                                                                ${sheet.unitPrice.toFixed(1)}
+                                                            </td>
+
+                                                            {input.requiredQty > 0 ? (
+                                                                <>
+                                                                    <td className="px-4 py-3 text-center font-bold text-red-500 bg-blue-50/30">
+                                                                        {sheet.sheetsNeeded}
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-right font-bold text-gray-800 bg-blue-50/30">
+                                                                        ${sheet.totalCost.toLocaleString()}
+                                                                    </td>
+                                                                </>
+                                                            ) : (
+                                                                <td className="px-4 py-3 text-right text-gray-500">
+                                                                    ${sheet.price}
+                                                                </td>
+                                                            )}
+
+                                                            <td className="px-4 py-3 text-center">
+                                                                {sheet.utilization}%
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 
 </html>
