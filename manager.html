@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>檔案與照片管理 | The Golden Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .drag-active {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function FileManager() {
+            const [viewMode, setViewMode] = useState('GRID'); // 'GRID' or 'LIST'
+            const [files, setFiles] = useState([
+                { id: 1, name: 'Golden_Retriever_Run.jpg', type: 'image', size: '2.4 MB', date: '2024-01-15' },
+                { id: 2, name: 'Puppy_Care_Guide.pdf', type: 'doc', size: '1.2 MB', date: '2024-01-14' },
+                { id: 3, name: 'Diet_Plan_v2.docx', type: 'doc', size: '450 KB', date: '2024-01-12' },
+                { id: 4, name: 'Park_Meetup.png', type: 'image', size: '3.1 MB', date: '2024-01-10' },
+                { id: 5, name: 'Training_Log.xlsx', type: 'doc', size: '15 KB', date: '2024-01-09' },
+                { id: 6, name: 'Cute_Nose.jpg', type: 'image', size: '1.8 MB', date: '2024-01-08' },
+            ]);
+            const [dragActive, setDragActive] = useState(false);
+            const inputRef = useRef(null);
+
+            // 模擬上傳
+            const handleFiles = (newFiles) => {
+                const uploaded = Array.from(newFiles).map((file, idx) => ({
+                    id: Date.now() + idx,
+                    name: file.name,
+                    type: file.type.includes('image') ? 'image' : 'doc',
+                    size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+                    date: new Date().toISOString().split('T')[0]
+                }));
+                setFiles(prev => [...uploaded, ...prev]);
+            };
+
+            const handleDrag = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.type === "dragenter" || e.type === "dragover") {
+                    setDragActive(true);
+                } else if (e.type === "dragleave") {
+                    setDragActive(false);
+                }
+            };
+
+            const handleDrop = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setDragActive(false);
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFiles(e.dataTransfer.files);
+                }
+            };
+
+            const handleDelete = (id) => {
+                if (confirm('確定要刪除此檔案嗎？')) {
+                    setFiles(files.filter(f => f.id !== id));
+                }
+            };
+
+            return (
+                <div className="flex h-screen overflow-hidden">
+                    {/* Sidebar */}
+                    <div className="w-64 bg-gray-900 text-white hidden md:flex flex-col">
+                        <div className="p-6 text-xl font-bold flex items-center gap-2 border-b border-gray-700">
+                            <i className="fa-solid fa-paw text-yellow-500"></i> The Golden Life
+                        </div>
+                        <nav className="flex-1 p-4 space-y-2">
+                            <a href="#" className="block px-4 py-3 rounded bg-blue-600 text-white">
+                                <i className="fa-solid fa-folder-open w-6 text-center"></i> 我的檔案
+                            </a>
+                            <a href="#" className="block px-4 py-3 rounded hover:bg-gray-800 text-gray-300 transition">
+                                <i className="fa-solid fa-star w-6 text-center"></i> 我的最愛
+                            </a>
+                            <a href="#" className="block px-4 py-3 rounded hover:bg-gray-800 text-gray-300 transition">
+                                <i className="fa-solid fa-clock w-6 text-center"></i> 最近使用
+                            </a>
+                            <a href="#" className="block px-4 py-3 rounded hover:bg-gray-800 text-gray-300 transition">
+                                <i className="fa-solid fa-trash w-6 text-center"></i> 垃圾桶
+                            </a>
+                        </nav>
+                        <div className="p-4 border-t border-gray-700">
+                            <a href="index.html" className="flex items-center gap-2 text-gray-400 hover:text-white transition">
+                                <i className="fa-solid fa-arrow-left"></i> 返回首頁
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Main Content */}
+                    <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
+                        {/* Header */}
+                        <header className="bg-white shadow-sm p-4 flex justify-between items-center z-10">
+                            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                                <i className="fa-solid fa-cloud text-blue-500"></i> 檔案管理
+                            </h2>
+                            <div className="flex items-center gap-4">
+                                <div className="relative">
+                                    <i className="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                    <input type="text" placeholder="搜尋檔案..." className="pl-10 pr-4 py-2 border rounded-full bg-gray-100 foocus:outline-none focus:ring-2 focus:ring-blue-500 w-64 transition" />
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-yellow-200 flex items-center justify-center text-yellow-700 font-bold">
+                                    D
+                                </div>
+                            </div>
+                        </header>
+
+                        {/* Toolbar */}
+                        <div className="p-4 flex justify-between items-center">
+                            <div className="flex gap-2">
+                                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-md flex items-center gap-2" onClick={() => inputRef.current.click()}>
+                                    <i className="fa-solid fa-upload"></i> 上傳檔案
+                                </button>
+                                <input ref={inputRef} type="file" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
+                            </div>
+                            <div className="bg-white rounded-lg shadow-sm border p-1 flex">
+                                <button
+                                    onClick={() => setViewMode('GRID')}
+                                    className={`px-3 py-1.5 rounded ${viewMode === 'GRID' ? 'bg-gray-100 text-blue-600' : 'text-gray-500 hover:bg-gray-50'}`}
+                                >
+                                    <i className="fa-solid fa-th-large"></i>
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('LIST')}
+                                    className={`px-3 py-1.5 rounded ${viewMode === 'LIST' ? 'bg-gray-100 text-blue-600' : 'text-gray-500 hover:bg-gray-50'}`}
+                                >
+                                    <i className="fa-solid fa-list"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Drag & Drop Zone / File Area */}
+                        <main
+                            className={`flex-1 p-6 overflow-y-auto relative transition-colors ${dragActive ? 'bg-blue-50 border-4 border-dashed border-blue-300 m-4 rounded-xl' : ''}`}
+                            onDragEnter={handleDrag}
+                            onDragOver={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDrop={handleDrop}
+                        >
+                            {dragActive && (
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="text-center text-blue-500">
+                                        <i className="fa-solid fa-cloud-arrow-up text-5xl mb-2"></i>
+                                        <h3 className="text-xl font-bold">放開以開始上傳</h3>
+                                    </div>
+                                </div>
+                            )}
+
+                            {viewMode === 'GRID' ? (
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                                    {files.map(file => (
+                                        <div key={file.id} className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition group border border-gray-100">
+                                            <div className="h-40 bg-gray-100 rounded-lg mb-3 flex items-center justify-center relative overflow-hidden text-gray-400">
+                                                {file.type === 'image' ? (
+                                                    <div className="w-full h-full bg-blue-50 flex items-center justify-center">
+                                                        <i className="fa-regular fa-image text-4xl text-blue-300"></i>
+                                                    </div>
+                                                ) : (
+                                                    <i className="fa-regular fa-file-lines text-4xl"></i>
+                                                )}
+
+                                                {/* Overlay Actions */}
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
+                                                    <button className="p-2 bg-white rounded-full hover:bg-gray-200 transition" title="下載"><i className="fa-solid fa-download text-gray-700"></i></button>
+                                                    <button className="p-2 bg-white rounded-full hover:bg-red-100 text-red-500 transition" onClick={() => handleDelete(file.id)} title="刪除"><i className="fa-solid fa-trash"></i></button>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <p className="font-semibold text-gray-800 text-sm truncate w-32" title={file.name}>{file.name}</p>
+                                                    <p className="text-xs text-gray-500">{file.size} • {file.date}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+                                    <table className="w-full text-left text-sm">
+                                        <thead className="bg-gray-50 text-gray-600 font-semibold border-b">
+                                            <tr>
+                                                <th className="p-4">名稱</th>
+                                                <th className="p-4">大小</th>
+                                                <th className="p-4">修改日期</th>
+                                                <th className="p-4 text-right">動作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {files.map(file => (
+                                                <tr key={file.id} className="hover:bg-gray-50 group">
+                                                    <td className="p-4 flex items-center gap-3">
+                                                        <div className={`w-8 h-8 rounded flex items-center justify-center ${file.type === 'image' ? 'bg-blue-100 text-blue-500' : 'bg-green-100 text-green-500'}`}>
+                                                            <i className={`fa-solid ${file.type === 'image' ? 'fa-image' : 'fa-file'}`}></i>
+                                                        </div>
+                                                        <span className="font-medium text-gray-700">{file.name}</span>
+                                                    </td>
+                                                    <td className="p-4 text-gray-500">{file.size}</td>
+                                                    <td className="p-4 text-gray-500">{file.date}</td>
+                                                    <td className="p-4 text-right">
+                                                        <button className="text-gray-400 hover:text-red-500 transition p-2" onClick={() => handleDelete(file.id)}>
+                                                            <i className="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </main>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<FileManager />);
+    </script>
+</body>
+
+</html>
